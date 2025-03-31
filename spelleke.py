@@ -440,11 +440,16 @@ while running:
         # Collision detection met obstakels
         collided_obstacle = check_collision(ball_pos, ball_radius, levels[current_level].obstacles)
         if collided_obstacle:
-            ball_speed[0] = -ball_speed[0] * 0.8
-            ball_speed[1] = -ball_speed[1] * 0.8
-            ball_pos[0] -= ball_speed[0]
-            ball_pos[1] -= ball_speed[1]
-        
+            # Welke kant van obstakel geraakt wordt
+            if ball_pos[0] <= collided_obstacle.left or ball_pos[0] >= collided_obstacle.right:
+                ball_speed[0] = -ball_speed[0] * 0.8
+            if ball_pos[1] <= collided_obstacle.top or ball_pos[1] >= collided_obstacle.bottom:
+                ball_speed[1] = -ball_speed[1] * 0.8
+
+            while check_collision(ball_pos, ball_radius, levels[current_level].obstacles):
+                ball_pos[0] += ball_speed[0] * 0.1
+                ball_pos[1] += ball_speed[1] * 0.1
+
         # Snelheid verminderen
         ball_speed[0] *= 0.98
         ball_speed[1] *= 0.98

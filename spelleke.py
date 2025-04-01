@@ -202,7 +202,7 @@ slider_x = 840
 slider_y = 150
 slider_rect = pygame.Rect(slider_x, slider_y, slider_width, slider_height)
 slider_knob_radius = 15
-slider_knob_y = slider_y + slider_height  # Blijft hetzelfde, maar nu is dit minimale kracht
+slider_knob_y = slider_y + slider_height
 force = 0
 
 # Kracht instellingen
@@ -220,9 +220,7 @@ start_button = Button(350, 250, 200, 50, "Start Game", "start")
 next_button = Button(350, 350, 200, 50, "Next Level", "next")
 exit_button = Button(350, 450, 200, 50, "Exit", "exit")
 menu_button = Button(350, 450, 200, 50, "Main Menu", "menu")
-
-show_arrow = False
-arrow_end = (0, 0)
+hit_button = Button(820, 450, 70, 30, "Slaag!")
 
 def distance(p1, p2):
     return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
@@ -248,17 +246,6 @@ def draw_grid():
     for y in range(0, 600, 25):
         pygame.draw.line(screen, GRID_COLOR, (0, y), (800, y), 1)
 
-def draw_arrow(start_pos, end_pos):
-    pygame.draw.line(screen, BLUE, start_pos, end_pos, 2)
-    angle = math.atan2(end_pos[1] - start_pos[1], end_pos[0] - start_pos[0])
-    arrow_length = 15
-    pygame.draw.line(screen, BLUE, end_pos,
-                     (end_pos[0] - arrow_length * math.cos(angle - math.pi / 6),
-                      end_pos[1] - arrow_length * math.sin(angle - math.pi / 6)), 2)
-    pygame.draw.line(screen, BLUE, end_pos,
-                     (end_pos[0] - arrow_length * math.cos(angle + math.pi / 6),
-                      end_pos[1] - arrow_length * math.sin(angle + math.pi / 6)), 2)
-
 def check_collision(ball_pos, ball_radius, obstacles):
     for obstacle in obstacles:
         closest_x = max(obstacle.left, min(ball_pos[0], obstacle.right))
@@ -269,9 +256,8 @@ def check_collision(ball_pos, ball_radius, obstacles):
     return None
 
 def reset_level():
-    global ball_speed, show_arrow, force, slider_knob_y
+    global ball_speed, force, slider_knob_y
     ball_speed = [0, 0]
-    show_arrow = False
     force = 0
     slider_knob_y = slider_y + slider_height
 
@@ -289,6 +275,23 @@ def draw_menu():
     start_button.draw(screen)
     exit_button.draw(screen)
 
+def hit_ball():
+    try:
+        coords = input_text.replace("(", "").replace(")", "").split(",")
+        x, y = map(int, coords)
+        
+        if 0 <= x <= 800 and 0 <= y <= 600:
+            vector = [x - ball_pos[0], y - ball_pos[1]]
+            length = math.sqrt(vector[0]**2 + vector[1]**2)
+            if length > 0:
+                ball_speed[0] = vector[0]/length * force
+                ball_speed[1] = vector[1]/length * force
+                levels[current_level].strokes += 1
+                return True
+    except:
+        pass
+    return False
+
 def draw_game():
     screen.fill(GREEN)
 
@@ -301,8 +304,8 @@ def draw_game():
 
     # Teken bewegende obstakels
     for moving_obstacle in levels[current_level].moving_obstacles:
-        moving_obstacle.update()  # Update the position of the moving barrier
-        moving_obstacle.draw(screen)  # Draw the moving barrier
+        moving_obstacle.update()
+        moving_obstacle.draw(screen)
 
     # Teken de hole
     pygame.draw.circle(screen, BLACK, levels[current_level].hole_pos, hole_radius)
@@ -313,10 +316,6 @@ def draw_game():
     pygame.draw.circle(screen, (255, 100, 100),
                        (int(ball_pos[0] - ball_radius / 3), int(ball_pos[1] - ball_radius / 3)),
                        ball_radius / 3)
-
-    # Teken richtingspijl
-    if show_arrow and sum(abs(s) for s in ball_speed) < 0.1:
-        draw_arrow(levels[current_level].start_pos, arrow_end)
 
     # Teken de schuifbalk
     pygame.draw.rect(screen, SLIDER_BG_COLOR, slider_rect)
@@ -348,6 +347,9 @@ def draw_game():
     pygame.draw.rect(screen, BLACK, input_box, 2)
     text_surface = font_input.render(input_text, True, TEXT_COLOR)
     screen.blit(text_surface, (input_box.x + 5, input_box.y + 5))
+
+    # Slaag knop
+    hit_button.draw(screen)
 
 def draw_level_complete():
     screen.fill(GREEN)
@@ -395,6 +397,8 @@ while running:
         if current_level < len(levels) - 1:
             next_button.check_hover(mouse_pos)
         menu_button.check_hover(mouse_pos)
+    elif game_state == PLAYING:
+        hit_button.check_hover(mouse_pos)
 
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -425,11 +429,8 @@ while running:
         # Gameplay handling
         elif game_state == PLAYING:
             if event.type == MOUSEBUTTONDOWN:
-                # Check if clicking on ball (when stationary)
-                if sum(abs(s) for s in ball_speed) < 0.1:
-                    if distance(ball_pos, event.pos) <= ball_radius:
-                        show_arrow = True
-                        arrow_end = event.pos
+                if hit_button.rect.collidepoint(event.pos):
+                    hit_ball()
 
                 if slider_rect.collidepoint(event.pos):
                     slider_knob_y = event.pos[1]
@@ -442,40 +443,15 @@ while running:
                     active = False
 
             elif event.type == MOUSEMOTION:
-                if show_arrow:
-                    arrow_end = event.pos
-
                 if event.buttons[0] and slider_rect.collidepoint(event.pos):
                     slider_knob_y = event.pos[1]
                     slider_knob_y = max(slider_y, min(slider_knob_y, slider_y + slider_height))
                     force = ((slider_y + slider_height - slider_knob_y) / slider_height) * max_force
 
-            elif event.type == MOUSEBUTTONUP:
-                if show_arrow:
-                    vector = [ball_pos[0] - arrow_end[0], ball_pos[1] - arrow_end[1]]
-                    length = math.sqrt(vector[0] ** 2 + vector[1] ** 2)
-                    if length > 0:
-                        ball_speed = [vector[0] / length * force, vector[1] / length * force]
-                        levels[current_level].strokes += 1
-                    show_arrow = False
-
             elif event.type == KEYDOWN:
                 if active:
                     if event.key == K_RETURN:
-                        try:
-                            coords = input_text.replace("(", "").replace(")", "").split(",")
-                            x, y = map(int, coords)
-
-                            if 0 <= x <= 800 and 0 <= y <= 600:
-                                vector = [x - ball_pos[0], y - ball_pos[1]]
-                                length = math.sqrt(vector[0] ** 2 + vector[1] ** 2)
-                                if length > 0:
-                                    ball_speed = [vector[0] / length * force, vector[1] / length * force]
-                                    levels[current_level].strokes += 1
-                                input_text = ""
-                        except (ValueError, IndexError):
-                            input_text = ""
-
+                        hit_ball()
                     elif event.key == K_BACKSPACE:
                         input_text = input_text[:-1]
                     else:

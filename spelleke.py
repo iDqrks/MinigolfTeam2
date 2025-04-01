@@ -452,8 +452,7 @@ while running:
 
             elif event.type == MOUSEBUTTONUP:
                 if show_arrow:
-                    vector = [levels[current_level].start_pos[0] - arrow_end[0],
-                              levels[current_level].start_pos[1] - arrow_end[1]]
+                    vector = [ball_pos[0] - arrow_end[0], ball_pos[1] - arrow_end[1]]
                     length = math.sqrt(vector[0] ** 2 + vector[1] ** 2)
                     if length > 0:
                         ball_speed = [vector[0] / length * force, vector[1] / length * force]
@@ -468,8 +467,7 @@ while running:
                             x, y = map(int, coords)
 
                             if 0 <= x <= 800 and 0 <= y <= 600:
-                                vector = [x - levels[current_level].start_pos[0],
-                                          y - levels[current_level].start_pos[1]]
+                                vector = [x - ball_pos[0], y - ball_pos[1]]
                                 length = math.sqrt(vector[0] ** 2 + vector[1] ** 2)
                                 if length > 0:
                                     ball_speed = [vector[0] / length * force, vector[1] / length * force]

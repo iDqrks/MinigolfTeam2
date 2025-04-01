@@ -202,7 +202,8 @@ slider_x = 840
 slider_y = 150
 slider_rect = pygame.Rect(slider_x, slider_y, slider_width, slider_height)
 slider_knob_radius = 15
-slider_knob_y = slider_y + slider_height
+slider_knob_y = slider_y + slider_height  # Blijft hetzelfde, maar nu is dit minimale kracht
+force = 0
 
 # Kracht instellingen
 min_force = 0
@@ -433,7 +434,7 @@ while running:
                 if slider_rect.collidepoint(event.pos):
                     slider_knob_y = event.pos[1]
                     slider_knob_y = max(slider_y, min(slider_knob_y, slider_y + slider_height))
-                    force = ((slider_knob_y - slider_y) / slider_height) * max_force
+                    force = ((slider_y + slider_height - slider_knob_y) / slider_height) * max_force
 
                 if input_box.collidepoint(event.pos):
                     active = True
@@ -447,7 +448,7 @@ while running:
                 if event.buttons[0] and slider_rect.collidepoint(event.pos):
                     slider_knob_y = event.pos[1]
                     slider_knob_y = max(slider_y, min(slider_knob_y, slider_y + slider_height))
-                    force = ((slider_knob_y - slider_y) / slider_height) * max_force
+                    force = ((slider_y + slider_height - slider_knob_y) / slider_height) * max_force
 
             elif event.type == MOUSEBUTTONUP:
                 if show_arrow:

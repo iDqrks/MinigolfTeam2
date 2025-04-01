@@ -104,11 +104,11 @@ class SkinOption:
 
 
 # Maak knoppen voor homescreen
-start_button = Button("Start Game", (SCREEN_WIDTH - 250) // 2, 350, 250, 120, button_font)  # Gecentreerd
+start_button = Button("Start Game", (SCREEN_WIDTH - 250) // 2, 350, 250, 120, button_font)
 levels_button = Button("Levels", 50, 650, 200, 60, small_font)
-achievements_button = Button("Achievements", 750, 650, 250, 60, small_font)  # Breder voor tekst
-customize_button = Button("Customize", (SCREEN_WIDTH - 250) // 2, 500, 250, 75, button_font)  # Gecentreerd
-score_button = Button("Scorebord", (SCREEN_WIDTH - 250) // 2, 600, 250, 75, button_font)  # Gecentreerd
+achievements_button = Button("Achievements", 750, 650, 250, 60, small_font)
+customize_button = Button("Customize", (SCREEN_WIDTH - 250) // 2, 500, 250, 75, button_font)
+score_button = Button("Scorebord", (SCREEN_WIDTH - 250) // 2, 600, 250, 75, button_font)
 
 buttons = [start_button, levels_button, achievements_button, customize_button, score_button]
 
@@ -137,6 +137,18 @@ flag_skins = [
     SkinOption(600, 250, BLUE, "flag")
 ]
 
+# Levels scherm knoppen (3x3 raster)
+level_buttons = []
+for i in range(9):
+    row = i // 3
+    col = i % 3
+    x = 250 + col * 200  # Start op x=250, 200px spacing
+    y = 200 + row * 150  # Start op y=200, 150px spacing
+    level_buttons.append(Button(f"Level {i+1}", x, y, 150, 100, button_font))
+
+# Terug-knop voor levelscherm
+level_back_button = Button("Terug", (SCREEN_WIDTH - 250) // 2, 650, 250, 75, button_font)
+
 
 # Hoofdloop homescreen
 def homescreen():
@@ -156,7 +168,7 @@ def homescreen():
                     if button.text == "Start Game":
                         print("Starting game...")
                     elif button.text == "Levels":
-                        print("Going to level selection...")
+                        level_screen()
                     elif button.text == "Achievements":
                         print("Showing achievements...")
                     elif button.text == "Customize":
@@ -171,7 +183,7 @@ def homescreen():
 
         title_shadow = title_font.render("BrainPutt", True, SHADOW_COLOR)
         title = title_font.render("BrainPutt", True, WHITE)
-        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))  # Exact gecentreerd
+        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))
         screen.blit(title_shadow, title_rect.move(5, 5))
         pygame.draw.rect(screen, DARK_GREEN, (title_rect.x - 40, title_rect.y - 25,
                                               title_rect.width + 80, title_rect.height + 50), border_radius=20)
@@ -262,6 +274,37 @@ def skin_selection_screen(skins, skin_type):
             skin.draw(screen)
 
         back_button.draw(screen)
+
+        pygame.display.flip()
+        clock.tick(60)
+
+
+# Levels scherm
+def level_screen():
+    clock = pygame.time.Clock()
+    running = True
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if level_back_button.is_clicked(event):
+                return
+            for button in level_buttons:
+                if button.is_clicked(event):
+                    print(f"{button.text} selected!")
+
+        screen.fill(BLUE)
+        pygame.draw.rect(screen, GREEN, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
+
+        title = title_font.render("Select Level", True, WHITE)
+        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 100))
+        screen.blit(title, title_rect)
+
+        for button in level_buttons:
+            button.draw(screen)
+
+        level_back_button.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)

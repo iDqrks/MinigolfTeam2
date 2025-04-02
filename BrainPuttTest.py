@@ -233,7 +233,7 @@ levels = [
                            MovingBarrier(start_pos=[550, 550], end_pos=[550, 600], speed=2, vertical=True)], 
           par=8, 
           start_pos=(50, 50)),
-    Level(hole_pos=[850, 700], 
+    Level(hole_pos=[100, 700], 
           obstacles=[pygame.Rect(0, 200, 350, 25), pygame.Rect(450, 200, 450, 25), pygame.Rect(0, 400, 550, 25), pygame.Rect(650, 400, 250, 25), pygame.Rect(0, 600, 700, 25)], 
           moving_obstacles=[MovingBarrier(start_pos=[400, 250], end_pos=[400, 300], speed=2, vertical=True),
                            MovingBarrier(start_pos=[600, 350], end_pos=[600, 400], speed=2, vertical=True),

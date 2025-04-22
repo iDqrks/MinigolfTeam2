@@ -48,6 +48,12 @@ PLAYING = 1
 LEVEL_COMPLETE = 2
 GAME_COMPLETE = 3
 
+# Arrow
+ARROW_COLOR = (0, 0, 0)
+ARROW_WIDTH = 4
+ARROW_SCALE = 5
+ARROW_HEAD_LEN = 12
+
 # Homescreen Button klasse
 class HomeButton:
     def __init__(self, text, x, y, width, height, font, locked=False):
@@ -551,6 +557,70 @@ def game_screen(level_num):
             moving_obstacle.draw(screen)
         pygame.draw.circle(screen, BLACK, levels[current_level].hole_pos, hole_radius)
         pygame.draw.circle(screen, (50, 50, 50), levels[current_level].hole_pos, hole_radius - 5)
+
+        if force > 0 and input_text:
+            try:
+                # conversion input to coords list
+                coords = input_text.replace("(", "").replace(")", "").split(",") #Replacing input "()" by empty space so they don't get added to the list
+
+                input_x = int(coords[0])
+                input_y = int(coords[1])
+
+                max_screen_width = SCREEN_WIDTH - sidebar_width
+
+                # check if input coordinates are inside playing field
+                if 0 <= input_x <= max_screen_width and 0 <= input_y <= SCREEN_HEIGHT:
+
+                    # distance from ball to target
+                    horizontal_distance = input_x - ball_pos[0]
+                    vertical_distance = input_y - ball_pos[1]
+                    distance_ball_to_target = math.hypot(horizontal_distance, vertical_distance)
+
+                    if distance_ball_to_target > 0:
+                        # arrow direction toward target
+                        direction_x = horizontal_distance / distance_ball_to_target
+                        direction_y = vertical_distance / distance_ball_to_target
+
+                        # where arrow tip ends
+                        arrow_length = force * ARROW_SCALE
+                        arrow_tip_x = ball_pos[0] + direction_x * arrow_length
+                        arrow_tip_y = ball_pos[1] + direction_y * arrow_length
+
+                        # drawing arrow shaft
+                        pygame.draw.line(
+                            screen,
+                            ARROW_COLOR,
+                            (int(ball_pos[0]), int(ball_pos[1])),
+                            (int(arrow_tip_x), int(arrow_tip_y)),
+                            ARROW_WIDTH
+                        )
+
+                        # drawing arrow head
+                        arrow_angle = math.atan2(direction_y, direction_x)
+                        arrow_angle_left = arrow_angle + math.radians(150)
+                        arrow_angle_right = arrow_angle - math.radians(150)
+
+                        arrow_head_point1 = (
+                            arrow_tip_x + math.cos(arrow_angle_left) * ARROW_HEAD_LEN,
+                            arrow_tip_y + math.sin(arrow_angle_left) * ARROW_HEAD_LEN
+                        )
+                        arrow_head_point2 = (
+                            arrow_tip_x + math.cos(arrow_angle_right) * ARROW_HEAD_LEN,
+                            arrow_tip_y + math.sin(arrow_angle_right) * ARROW_HEAD_LEN
+                        )
+
+                        pygame.draw.polygon(
+                            screen,
+                            ARROW_COLOR,
+                            [
+                                (arrow_tip_x, arrow_tip_y),
+                                arrow_head_point1,
+                                arrow_head_point2
+                            ]
+                        )
+            except (ValueError, IndexError):
+                pass
+
         pygame.draw.circle(screen, RED, (int(ball_pos[0]), int(ball_pos[1])), ball_radius)
         pygame.draw.circle(screen, (255, 100, 100),
                            (int(ball_pos[0] - ball_radius / 3), int(ball_pos[1] - ball_radius / 3)),

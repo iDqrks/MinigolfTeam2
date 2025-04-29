@@ -1,0 +1,1 @@
+INSERT_SCORE = "INSERT INTO brainputt.scores (username, score, time_seconds) VALUES (%s, %s, %s) RETURNING id;"

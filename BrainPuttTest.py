@@ -64,7 +64,7 @@ timer_active = False
 # Scoreboard to store player scores
 scoreboard = []
 
-# Cursor in input_box
+#Cursor in input_box
 cursor_visible = True
 cursor_timer = 0
 
@@ -212,6 +212,7 @@ class GameButton:
             return self.action
         return None
 
+
 # MovingBarrier klasse
 class MovingBarrier:
     def __init__(self, start_pos, end_pos, speed, vertical=False):
@@ -253,38 +254,51 @@ class Level:
 
 # Level designs (9 levels)
 levels = [
+    #Level 1
     Level(hole_pos=[800, 600],
           obstacles=[pygame.Rect(300, 300, 200, 25)],
           moving_obstacles=[],
           par=2,
           start_pos=(50, 50)),
+  
+    #Level 2
     Level(hole_pos=[700, 500],
           obstacles=[pygame.Rect(0, 350, 400, 25), pygame.Rect(500, 350, 350, 25)],
           moving_obstacles=[MovingBarrier(start_pos=[450, 400], end_pos=[450, 450], speed=2, vertical=True)],
           par=3,
           start_pos=(50, 50)),
+
+    #Level 3
     Level(hole_pos=[600, 400],
           obstacles=[pygame.Rect(0, 250, 400, 25), pygame.Rect(500, 250, 350, 25)],
           moving_obstacles=[MovingBarrier(start_pos=[450, 300], end_pos=[450, 350], speed=2, vertical=True)],
           par=4,
           start_pos=(50, 50)),
+  
+    #Level 4
     Level(hole_pos=[750, 550],
           obstacles=[pygame.Rect(0, 300, 300, 25), pygame.Rect(400, 300, 350, 25)],
           moving_obstacles=[MovingBarrier(start_pos=[350, 350], end_pos=[350, 450], speed=3, vertical=True)],
           par=4,
           start_pos=(50, 50)),
+
+    #Level 5
     Level(hole_pos=[650, 450],
           obstacles=[pygame.Rect(0, 200, 350, 25), pygame.Rect(450, 200, 350, 25), pygame.Rect(350, 200, 25, 200)],
           moving_obstacles=[MovingBarrier(start_pos=[400, 250], end_pos=[400, 300], speed=2, vertical=True),
                            MovingBarrier(start_pos=[500, 350], end_pos=[500, 400], speed=2, vertical=True)],
           par=5,
           start_pos=(50, 50)),
+
+    #Level 6
     Level(hole_pos=[700, 600],
           obstacles=[pygame.Rect(0, 450, 550, 25), pygame.Rect(650, 450, 200, 25)],
           moving_obstacles=[MovingBarrier(start_pos=[600, 350], end_pos=[600, 400], speed=2, vertical=True),
                            MovingBarrier(start_pos=[575, 500], end_pos=[575, 550], speed=2, vertical=True)],
           par=6,
           start_pos=(50, 50)),
+
+    #Level 7
     Level(hole_pos=[800, 500],
           obstacles=[pygame.Rect(0, 250, 300, 25), pygame.Rect(400, 250, 450, 25), pygame.Rect(0, 400, 600, 25), pygame.Rect(700, 400, 150, 25)],
           moving_obstacles=[MovingBarrier(start_pos=[350, 300], end_pos=[350, 350], speed=2, vertical=True),
@@ -292,6 +306,9 @@ levels = [
                            MovingBarrier(start_pos=[500, 450], end_pos=[500, 500], speed=3, vertical=True)],
           par=7,
           start_pos=(50, 50)),
+
+    #Level 8
+
     Level(hole_pos=[750, 650],
           obstacles=[pygame.Rect(0, 300, 400, 25), pygame.Rect(500, 300, 350, 25), pygame.Rect(400, 0, 25, 250), pygame.Rect(0, 500, 600, 25), pygame.Rect(700, 500, 150, 25)],
           moving_obstacles=[MovingBarrier(start_pos=[450, 350], end_pos=[450, 400], speed=3, vertical=True),
@@ -299,6 +316,9 @@ levels = [
                            MovingBarrier(start_pos=[550, 550], end_pos=[550, 600], speed=2, vertical=True)],
           par=8,
           start_pos=(50, 50)),
+
+    #Level 9
+
     Level(hole_pos=[100, 700],
           obstacles=[pygame.Rect(0, 200, 350, 25), pygame.Rect(450, 200, 400, 25), pygame.Rect(0, 400, 550, 25), pygame.Rect(650, 400, 200, 25), pygame.Rect(0, 600, 700, 25)],
           moving_obstacles=[MovingBarrier(start_pos=[400, 250], end_pos=[400, 300], speed=2, vertical=True),
@@ -308,6 +328,10 @@ levels = [
           par=9,
           start_pos=(50, 50))
 ]
+
+
+#Gameplay
+
 
 # Homescreen
 def homescreen():
@@ -341,6 +365,8 @@ def homescreen():
                         customize_screen()
                     elif button.text == "Scorebord":
                         scoreboard_screen()
+                        print("Toon scorebord...")
+
 
         screen.fill(BLUE)
         pygame.draw.rect(screen, GREEN, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
@@ -523,6 +549,7 @@ def game_screen(level_num):
     running = True
     back_button = GameButton(875, 680, 100, 50, "Terug", "back")
     hit_button = GameButton(875, 570, 100, 50, "Slaag!", "hit")
+    hit_button = GameButton(875, 570, 100, 50, "Slaag!", "hit")  # Grotere, duidelijke knop
 
     if level_num >= len(levels) or not unlocked_levels[level_num]:
         print(f"Level {level_num + 1} is vergrendeld of nog niet geïmplementeerd")
@@ -531,6 +558,7 @@ def game_screen(level_num):
     # Timer initialiseren voor het level
     level_start_time = time.time()
     levels[level_num].elapsed_time = 0
+
     current_level = level_num
     ball_radius = 15
     ball_speed = [0, 0]
@@ -557,7 +585,8 @@ def game_screen(level_num):
     input_text = ""
     active = False
 
-    # Cursor in invoerveld
+    #Cursor in invoerveld
+
     cursor_visible = True
     last_cursor_switch = pygame.time.get_ticks()
     BLINK_INTERVAL = 500
@@ -571,19 +600,28 @@ def game_screen(level_num):
     name_input_box = pygame.Rect(SCREEN_WIDTH // 2 - 150, 450, 300, 50)
     name_submitted = False
 
+
     def distance(p1, p2):
         return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
     def draw_grid():
         for x in range(0, SCREEN_WIDTH - sidebar_width, 25):
             pygame.draw.line(screen, GRID_COLOR, (x, 0), (x, SCREEN_HEIGHT), 1)
+
         for y in range(0, SCREEN_HEIGHT, 25):
             pygame.draw.line(screen, GRID_COLOR, (0, y), (SCREEN_WIDTH - sidebar_width, y), 1)
+
+
+        for y in range(0, SCREEN_HEIGHT, 25):
+            pygame.draw.line(screen, GRID_COLOR, (0, y), (SCREEN_WIDTH - sidebar_width, y), 1)
+
+
         for x in range(0, SCREEN_WIDTH - sidebar_width, 100):
             pygame.draw.line(screen, GRID_COLOR, (x, 0), (x, SCREEN_HEIGHT), 2)
             if x != 0:
                 text = font_small.render(str(x), True, TEXT_COLOR)
                 screen.blit(text, (x - 15, 5))
+
         for y in range(0, SCREEN_HEIGHT, 100):
             pygame.draw.line(screen, GRID_COLOR, (0, y), (SCREEN_WIDTH - sidebar_width, y), 2)
             if y != 0:
@@ -694,20 +732,33 @@ def game_screen(level_num):
             except (ValueError, IndexError):
                 pass
 
+        #Drawing ball
         pygame.draw.circle(screen, RED, (int(ball_pos[0]), int(ball_pos[1])), ball_radius)
         pygame.draw.circle(screen, (255, 100, 100), (int(ball_pos[0] - ball_radius / 3), int(ball_pos[1] - ball_radius / 3)), ball_radius / 3)
 
         coord_text = font_input.render("Doel (x,y):", True, BLACK)
         screen.blit(coord_text, (SCREEN_WIDTH - sidebar_width + 10, 100))
+
+    #Force, target, slider
+        coord_text = font_input.render("Doel (x,y):", True, BLACK)
+        screen.blit(coord_text, (SCREEN_WIDTH - sidebar_width + 10, 100))
+
+        #Drawing input x,y
+
         pygame.draw.rect(screen, WHITE, input_box, border_radius=5)
         pygame.draw.rect(screen, BLACK, input_box, 2, border_radius=5)
+        #pos and colour input
         text_surface = font_input.render(input_text, True, TEXT_COLOR)
         screen.blit(text_surface, (input_box.x + 10, input_box.y + 10))
+
+        #Cursor
+
         if active and cursor_visible:
             cursor_x = input_box.x + 10 + text_surface.get_width()
             cursor_y = input_box.y + 7
             cursor_height = font_input.get_height() + 5
             pygame.draw.line(screen, TEXT_COLOR,
+
                             (cursor_x, cursor_y), (cursor_x, cursor_y + cursor_height), 2)
 
         force_text = font_input.render(f"Kracht: {force:.1f}", True, TEXT_COLOR)
@@ -715,6 +766,17 @@ def game_screen(level_num):
         pygame.draw.rect(screen, SLIDER_BG_COLOR, slider_rect)
         pygame.draw.circle(screen, SLIDER_KNOB_COLOR, (slider_x + slider_width // 2, slider_knob_y), slider_knob_radius)
 
+
+                             (cursor_x, cursor_y), (cursor_x, cursor_y + cursor_height), 2)
+
+        force_text = font_input.render(f"Kracht: {force:.1f}", True, TEXT_COLOR)
+        screen.blit(force_text, (SCREEN_WIDTH - sidebar_width + 10, 205))
+
+        #Drawing Slider
+        pygame.draw.rect(screen, SLIDER_BG_COLOR, slider_rect)
+        pygame.draw.circle(screen, SLIDER_KNOB_COLOR, (slider_x + slider_width // 2, slider_knob_y), slider_knob_radius)
+
+    # How well you're doing in the game
         strokes_text = font_input.render(f"Strokes: {levels[current_level].strokes}", True, BLACK)
         screen.blit(strokes_text, (SCREEN_WIDTH - sidebar_width + 10, 10))
         level_text = font_input.render(f"Level: {current_level + 1}/{len(levels)}", True, BLACK)
@@ -723,6 +785,7 @@ def game_screen(level_num):
         screen.blit(par_text, (SCREEN_WIDTH - sidebar_width + 10, 50))
         time_text = font_input.render(f"Time: {current_time}s", True, BLACK)
         screen.blit(time_text, (SCREEN_WIDTH - sidebar_width + 10, 70))  # Moved to sidebar
+
 
         hit_button.draw(screen)
         back_button.draw(screen)
@@ -744,23 +807,41 @@ def game_screen(level_num):
         title = title_font.render(f"Level {current_level + 1} compleet!", True, WHITE)
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 200))
         rect_w_padding = title_rect.inflate(60,30)
+        title = title_font.render(f"Level {current_level + 1} compleet!", True, WHITE)
+        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 200))
+        rect_w_padding = title_rect.inflate(60,30)
+
         pygame.draw.rect(screen, GRID_COLOR, rect_w_padding, border_radius=10)
         screen.blit(title, title_rect)
 
         strokes_text = font_medium.render(f"Jouw strokes: {level.strokes}", True, WHITE)
         strokes_rect = strokes_text.get_rect(center=(SCREEN_WIDTH // 2, 300))
+
         par_text = font_medium.render(f"Par: {level.par}", True, WHITE)
         par_rect = par_text.get_rect(center=(SCREEN_WIDTH // 2, 350))
+
+        par_text = font_medium.render(f"Par: {level.par}", True, WHITE)
+        par_rect = par_text.get_rect(center=(SCREEN_WIDTH // 2, 350))
+
         if level.strokes < level.par:
             result_text = font_medium.render(f"{level.par - level.strokes} onder par!", True, BLUE)
         elif level.strokes > level.par:
             result_text = font_medium.render(f"{level.strokes - level.par} over par", True, RED)
         else:
             result_text = font_medium.render("Par!", True, GREEN)
+
         result_rect = result_text.get_rect(center=(SCREEN_WIDTH // 2, 400))
         group_rect = strokes_rect.union(par_rect).union(result_rect)
         group_rect.inflate_ip(60,30)
         pygame.draw.rect(screen, GRID_COLOR, group_rect, border_radius=10)
+
+
+        result_rect = result_text.get_rect(center=(SCREEN_WIDTH // 2, 400))
+        group_rect = strokes_rect.union(par_rect).union(result_rect)
+        group_rect.inflate_ip(60,30)
+
+        pygame.draw.rect(screen, GRID_COLOR, group_rect, border_radius=10)
+
         screen.blit(strokes_text, strokes_rect)
         screen.blit(par_text, par_rect)
         screen.blit(result_text, result_rect)
@@ -789,11 +870,22 @@ def game_screen(level_num):
                 total_text = font_medium.render(f"Totaal strokes: {sum(l.strokes for l in levels)}", True, BLACK)
                 screen.blit(total_text, (SCREEN_WIDTH // 2 - total_text.get_width() // 2, 600))
 
+        if current_level < len(levels) - 1:
+            next_button.draw(screen)
+        else:
+            complete_text = font_large.render("Spel Voltooid!", True, BLACK)
+            screen.blit(complete_text, (SCREEN_WIDTH // 2 - complete_text.get_width() // 2, 450))
+            total_text = font_medium.render(f"Totaal strokes: {total_strokes}", True, BLACK)
+            screen.blit(total_text, (SCREEN_WIDTH // 2 - total_text.get_width() // 2, 500))
+
+
         menu_button.draw(screen)
         back_button.draw(screen)
 
     while running:
-        # Cursor in invoerveld
+
+        #Cursor in invoerveld
+
         now = pygame.time.get_ticks()
         if active and now - last_cursor_switch >= BLINK_INTERVAL:
             cursor_visible = not cursor_visible
@@ -818,6 +910,7 @@ def game_screen(level_num):
                 running = False
 
             action = back_button.handle_event(event)
+
             if action == "back":
                 if timer_active:
                     levels[current_level].elapsed_time = time.time() - level_start_time
@@ -901,6 +994,15 @@ def game_screen(level_num):
                         input_text = input_text[:-1]
                     else:
                         input_text += event.unicode
+                    if active:
+                        if event.key == K_RETURN:
+                            if hit_ball():
+                                input_text = ""
+                        elif event.key == K_BACKSPACE:
+                            input_text = input_text[:-1]
+                        else:
+                            input_text += event.unicode
+
 
         if game_state == PLAYING:
             for moving_obstacle in levels[current_level].moving_obstacles:
@@ -924,11 +1026,14 @@ def game_screen(level_num):
                 ball_speed[1] = -ball_speed[1] * 0.8
 
             collided_obstacle = check_collision(ball_pos, ball_radius, levels[current_level].obstacles)
+
             if collided_obstacle:
                 if ball_pos[0] <= collided_obstacle.left or ball_pos[0] >= collided_obstacle.right:
                     ball_speed[0] = -ball_speed[0] * 0.8
+
                 if ball_pos[1] <= collided_obstacle.top or ball_pos[1] >= collided_obstacle.bottom:
                     ball_speed[1] = -ball_speed[1] * 0.8
+
                 while check_collision(ball_pos, ball_radius, levels[current_level].obstacles):
                     ball_pos[0] += ball_speed[0] * 0.1
                     ball_pos[1] += ball_speed[1] * 0.1
@@ -937,8 +1042,10 @@ def game_screen(level_num):
                 if moving_obstacle.rect.colliderect(pygame.Rect(ball_pos[0] - ball_radius, ball_pos[1] - ball_radius, ball_radius * 2, ball_radius * 2)):
                     if ball_pos[0] <= moving_obstacle.rect.left or ball_pos[0] >= moving_obstacle.rect.right:
                         ball_speed[0] = -ball_speed[0] * 0.8
+
                     if ball_pos[1] <= moving_obstacle.rect.top or ball_pos[1] >= moving_obstacle.rect.bottom:
                         ball_speed[1] = -ball_speed[1] * 0.8
+
                     while check_collision(ball_pos, ball_radius, levels[current_level].obstacles) or moving_obstacle.rect.colliderect(pygame.Rect(ball_pos[0] - ball_radius, ball_pos[1] - ball_radius, ball_radius * 2, ball_radius * 2)):
                         ball_pos[0] += ball_speed[0] * 0.1
                         ball_pos[1] += ball_speed[1] * 0.1
@@ -952,6 +1059,7 @@ def game_screen(level_num):
 
         if game_state == PLAYING:
             draw_game()
+
         elif game_state == LEVEL_COMPLETE:
             draw_level_complete()
 

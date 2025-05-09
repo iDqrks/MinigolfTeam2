@@ -1,48 +1,55 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import psycopg
 import os
-from queries import INSERT_SCORE, GET_SCORES
+import config
+from queries import INSERT_SCORE
+from queries import GET_SCORES
 
-app = FastAPI(docs_url=None, redoc_url=None)
+# Initialize app
+app = FastAPI(
+    docs_url=None,
+    redoc_url=None,
+)
 
-# CORS-instellingen
-allowed_origins = ["*", "http://localhost:*", "https://brain-putt.vercel.app"]
+# Allow CORS
+origins = config.allowed_origins.split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Databaseverbinding
+# Database URL from environment variables
 DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is not set")
 
-# Pydantic model voor POST request
+# Define request model for posting scores
 class Score(BaseModel):
     username: str
     score: int
     time_seconds: int
 
+# Routes
 @app.get("/")
-async def read_root():
-    return {"message": "Hello we are BrainPutt"}
+def read_root():
+    return JSONResponse(content={"message": "Hello we are BrainPutt"})
 
 @app.post("/scores/add/")
 async def create_score(score: Score):
-    if not score.username or len(score.username) > 50:
-        raise HTTPException(status_code=400, detail="Username must be between 1 and 50 characters")
     try:
         with psycopg.connect(DATABASE_URL) as conn:
             with conn.cursor() as cur:
                 cur.execute(INSERT_SCORE, (score.username, score.score, score.time_seconds))
                 inserted_id = cur.fetchone()[0]
                 conn.commit()
+
         return {"id": inserted_id, "message": "Score successfully added"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

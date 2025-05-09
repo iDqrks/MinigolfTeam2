@@ -2,10 +2,14 @@ import pygame
 import sys
 import math
 import time
+import requests
 from pygame.locals import *
 
 # Initialiseren van Pygame
 pygame.init()
+
+# API url
+API_URL = "https://brain-putt.vercel.app/"
 
 # Scherm instellingen
 SCREEN_WIDTH = 1000
@@ -48,7 +52,7 @@ font_input = pygame.font.Font(None, 28)
 MENU = 0
 PLAYING = 1
 LEVEL_COMPLETE = 2
-GAME_COMPLETE = 3
+NAME_INPUT = 3
 
 # Arrow
 ARROW_WIDTH = 4
@@ -60,9 +64,6 @@ game_start_time = 0
 total_elapsed_time = 0
 level_start_time = 0
 timer_active = False
-
-# Scoreboard to store player scores
-scoreboard = []
 
 # Cursor in input_box
 cursor_visible = True
@@ -480,6 +481,15 @@ def scoreboard_screen():
     running = True
     back_button = HomeButton("Terug", (SCREEN_WIDTH - 250) // 2, 650, 250, 75, button_font)
 
+    # Haal scores op van de server
+    try:
+        response = requests.get(f"{API_URL}/scores/", timeout=5)
+        response.raise_for_status()
+        scores = response.json()
+    except requests.RequestException as e:
+        print(f"Fout bij ophalen scores: {e}")
+        scores = []
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -494,18 +504,15 @@ def scoreboard_screen():
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 100))
         screen.blit(title, title_rect)
 
-        # Sorteer scoreboard op aantal slagen (laag naar hoog)
-        sorted_scores = sorted(scoreboard, key=lambda x: x["strokes"])
-
-        # Toon top 5 scores (of minder als er minder zijn)
+        # Toon scores
         y_offset = 200
         headers = font_medium.render("Rank  Name            Strokes  Time", True, BLACK)
         screen.blit(headers, (SCREEN_WIDTH // 2 - headers.get_width() // 2, y_offset))
         y_offset += 50
 
-        for i, score in enumerate(sorted_scores[:5], 1):
+        for i, score in enumerate(scores[:5], 1):  # Beperk tot top 5
             score_text = font_medium.render(
-                f"{i:<5} {score['name']:<15} {score['strokes']:<8} {score['time']}s",
+                f"{i:<5} {score['username']:<15} {score['score']:<8} {score['time_seconds']}s",
                 True,
                 BLACK
             )
@@ -518,7 +525,7 @@ def scoreboard_screen():
 
 # Game scherm
 def game_screen(level_num):
-    global unlocked_levels, total_elapsed_time, level_start_time, timer_active, scoreboard
+    global unlocked_levels, total_elapsed_time, level_start_time, timer_active
     clock = pygame.time.Clock()
     running = True
     back_button = GameButton(875, 680, 100, 50, "Terug", "back")
@@ -564,12 +571,14 @@ def game_screen(level_num):
 
     next_button = GameButton(SCREEN_WIDTH // 2 - 100, 470, 200, 60, "Volgend Level", "next")
     menu_button = GameButton(SCREEN_WIDTH // 2 - 100, 550, 200, 60, "Hoofdmenu", "menu")
+    submit_button = GameButton(SCREEN_WIDTH // 2 - 100, 520, 200, 60, "Submit", "submit")
 
     # Variabelen voor naam invoer na game voltooiing
     name_input_active = False
     name_input_text = ""
-    name_input_box = pygame.Rect(SCREEN_WIDTH // 2 - 150, 450, 300, 50)
+    name_input_box = pygame.Rect(SCREEN_WIDTH // 2 - 150, 350, 300, 50)
     name_submitted = False
+    error_message = ""
 
     def distance(p1, p2):
         return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
@@ -722,14 +731,44 @@ def game_screen(level_num):
         par_text = font_input.render(f"Par: {levels[current_level].par}", True, BLACK)
         screen.blit(par_text, (SCREEN_WIDTH - sidebar_width + 10, 50))
         time_text = font_input.render(f"Time: {current_time}s", True, BLACK)
-        screen.blit(time_text, (SCREEN_WIDTH - sidebar_width + 10, 70))  # Moved to sidebar
+        screen.blit(time_text, (SCREEN_WIDTH - sidebar_width + 10, 70))
 
         hit_button.draw(screen)
         back_button.draw(screen)
 
+    def draw_name_input():
+        nonlocal error_message
+        screen.fill(GREEN)
+        pygame.draw.rect(screen, LIGHT_GREEN, (100, 100, SCREEN_WIDTH - 200, SCREEN_HEIGHT - 200), border_radius=20)
+
+        title = title_font.render("Spel Voltooid!", True, WHITE)
+        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 200))
+        pygame.draw.rect(screen, GRID_COLOR, title_rect.inflate(60, 30), border_radius=10)
+        screen.blit(title, title_rect)
+
+        prompt = font_medium.render("Voer je naam in:", True, BLACK)
+        screen.blit(prompt, (SCREEN_WIDTH // 2 - prompt.get_width() // 2, 300))
+
+        pygame.draw.rect(screen, WHITE, name_input_box, border_radius=5)
+        pygame.draw.rect(screen, BLACK, name_input_box, 2, border_radius=5)
+        name_surface = font_input.render(name_input_text, True, TEXT_COLOR)
+        screen.blit(name_surface, (name_input_box.x + 5, name_input_box.y + 5))
+        if name_input_active and cursor_visible:
+            cursor_x = name_input_box.x + 5 + name_surface.get_width()
+            cursor_y = name_input_box.y + 5
+            cursor_height = font_input.get_height() + 5
+            pygame.draw.line(screen, TEXT_COLOR,
+                            (cursor_x, cursor_y), (cursor_x, cursor_y + cursor_height), 2)
+
+        if error_message:
+            error_text = font_small.render(error_message, True, RED)
+            screen.blit(error_text, (SCREEN_WIDTH // 2 - error_text.get_width() // 2, 410))
+
+        submit_button.draw(screen)
+        back_button.draw(screen)
+
     def draw_level_complete():
-        global timer_active, total_elapsed_time, level_start_time, scoreboard
-        # Voeg de tijd van het huidige level toe aan de totale tijd
+        global timer_active, total_elapsed_time, level_start_time
         if timer_active:
             levels[current_level].elapsed_time = time.time() - level_start_time
             total_elapsed_time += levels[current_level].elapsed_time
@@ -743,8 +782,7 @@ def game_screen(level_num):
         total_time = int(total_elapsed_time)
         title = title_font.render(f"Level {current_level + 1} compleet!", True, WHITE)
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 200))
-        rect_w_padding = title_rect.inflate(60,30)
-        pygame.draw.rect(screen, GRID_COLOR, rect_w_padding, border_radius=10)
+        pygame.draw.rect(screen, GRID_COLOR, title_rect.inflate(60, 30), border_radius=10)
         screen.blit(title, title_rect)
 
         strokes_text = font_medium.render(f"Jouw strokes: {level.strokes}", True, WHITE)
@@ -759,8 +797,7 @@ def game_screen(level_num):
             result_text = font_medium.render("Par!", True, GREEN)
         result_rect = result_text.get_rect(center=(SCREEN_WIDTH // 2, 400))
         group_rect = strokes_rect.union(par_rect).union(result_rect)
-        group_rect.inflate_ip(60,30)
-        pygame.draw.rect(screen, GRID_COLOR, group_rect, border_radius=10)
+        pygame.draw.rect(screen, GRID_COLOR, group_rect.inflate(60, 30), border_radius=10)
         screen.blit(strokes_text, strokes_rect)
         screen.blit(par_text, par_rect)
         screen.blit(result_text, result_rect)
@@ -773,29 +810,17 @@ def game_screen(level_num):
         if current_level < len(levels) - 1:
             next_button.draw(screen)
         else:
-            # Laat inputveld voor naam zien als het spel is voltooid (alleen na level 9)
-            if not name_submitted:
-                name_prompt = font_medium.render("Voer je naam in:", True, BLACK)
-                screen.blit(name_prompt, (SCREEN_WIDTH // 2 - name_prompt.get_width() // 2, 400))
-                pygame.draw.rect(screen, WHITE, name_input_box, border_radius=5)
-                pygame.draw.rect(screen, BLACK, name_input_box, 2, border_radius=5)
-                name_surface = font_input.render(name_input_text, True, TEXT_COLOR)
-                screen.blit(name_surface, (name_input_box.x + 5, name_input_box.y + 5))
-                submit_button = GameButton(SCREEN_WIDTH // 2 - 100, 520, 200, 60, "Submit", "submit")
-                submit_button.draw(screen)
-            else:
-                complete_text = font_large.render("Spel Voltooid!", True, BLACK)
-                screen.blit(complete_text, (SCREEN_WIDTH // 2 - complete_text.get_width() // 2, 550))
-                total_text = font_medium.render(f"Totaal strokes: {sum(l.strokes for l in levels)}", True, BLACK)
-                screen.blit(total_text, (SCREEN_WIDTH // 2 - total_text.get_width() // 2, 600))
+            complete_text = font_large.render("Spel Voltooid!", True, BLACK)
+            screen.blit(complete_text, (SCREEN_WIDTH // 2 - complete_text.get_width() // 2, 550))
+            total_text = font_medium.render(f"Totaal strokes: {sum(l.strokes for l in levels)}", True, BLACK)
+            screen.blit(total_text, (SCREEN_WIDTH // 2 - total_text.get_width() // 2, 600))
 
         menu_button.draw(screen)
         back_button.draw(screen)
 
     while running:
-        # Cursor in invoerveld
         now = pygame.time.get_ticks()
-        if active and now - last_cursor_switch >= BLINK_INTERVAL:
+        if (active or name_input_active) and now - last_cursor_switch >= BLINK_INTERVAL:
             cursor_visible = not cursor_visible
             last_cursor_switch = now
 
@@ -807,10 +832,10 @@ def game_screen(level_num):
         elif game_state == LEVEL_COMPLETE:
             if current_level < len(levels) - 1:
                 next_button.check_hover(mouse_pos)
-            elif not name_submitted:
-                submit_button = GameButton(SCREEN_WIDTH // 2 - 100, 520, 200, 60, "Submit", "submit")
-                submit_button.check_hover(mouse_pos)
             menu_button.check_hover(mouse_pos)
+            back_button.check_hover(mouse_pos)
+        elif game_state == NAME_INPUT:
+            submit_button.check_hover(mouse_pos)
             back_button.check_hover(mouse_pos)
 
         for event in pygame.event.get():
@@ -825,57 +850,7 @@ def game_screen(level_num):
                     timer_active = False
                 return
 
-            if game_state == LEVEL_COMPLETE:
-                action = None
-                if current_level < len(levels) - 1:
-                    action = next_button.handle_event(event) or menu_button.handle_event(event)
-                else:
-                    if not name_submitted:
-                        if name_input_box.collidepoint(mouse_pos) and event.type == MOUSEBUTTONDOWN:
-                            name_input_active = True
-                        elif event.type == MOUSEBUTTONDOWN:
-                            name_input_active = False
-                        if event.type == KEYDOWN and name_input_active:
-                            if event.key == K_RETURN and name_input_text.strip():
-                                name_submitted = True
-                                total_strokes = sum(l.strokes for l in levels)
-                                scoreboard.append({
-                                    "name": name_input_text.strip(),
-                                    "strokes": total_strokes,
-                                    "time": int(total_elapsed_time)
-                                })
-                                print(f"Score saved: {name_input_text}, {total_strokes} strokes, {int(total_elapsed_time)} seconds")
-                            elif event.key == K_BACKSPACE:
-                                name_input_text = name_input_text[:-1]
-                            else:
-                                name_input_text += event.unicode
-                        submit_button = GameButton(SCREEN_WIDTH // 2 - 100, 520, 200, 60, "Submit", "submit")
-                        if submit_button.handle_event(event) == "submit" and name_input_text.strip():
-                            name_submitted = True
-                            total_strokes = sum(l.strokes for l in levels)
-                            scoreboard.append({
-                                "name": name_input_text.strip(),
-                                "strokes": total_strokes,
-                                "time": int(total_elapsed_time)
-                            })
-                            print(f"Score saved: {name_input_text}, {total_strokes} strokes, {int(total_elapsed_time)} seconds")
-                    else:
-                        action = menu_button.handle_event(event)
-                if action == "next":
-                    if current_level + 1 < len(unlocked_levels):
-                        unlocked_levels[current_level + 1] = True
-                        level_buttons[current_level + 1].locked = False
-                        level_buttons[current_level + 1].color = GREEN
-                        level_buttons[current_level + 1].hover_color = HOVER_COLOR
-                    game_state = PLAYING
-                    load_level(current_level + 1)
-                    timer_active = True
-                    level_start_time = time.time()
-                elif action == "menu":
-                    timer_active = False
-                    return
-
-            elif game_state == PLAYING:
+            if game_state == PLAYING:
                 if event.type == MOUSEBUTTONDOWN:
                     if hit_button.handle_event(event) == "hit":
                         if hit_ball():
@@ -902,13 +877,77 @@ def game_screen(level_num):
                     else:
                         input_text += event.unicode
 
+            elif game_state == NAME_INPUT:
+                if event.type == MOUSEBUTTONDOWN:
+                    if name_input_box.collidepoint(event.pos):
+                        name_input_active = True
+                    else:
+                        name_input_active = False
+                if event.type == KEYDOWN and name_input_active:
+                    if event.key == K_RETURN and name_input_text.strip():
+                        total_strokes = sum(l.strokes for l in levels)
+                        try:
+                            response = requests.post(
+                                f"{API_URL}/scores/add/",
+                                json={
+                                    "username": name_input_text.strip(),
+                                    "score": total_strokes,
+                                    "time_seconds": int(total_elapsed_time)
+                                },
+                                timeout=5
+                            )
+                            response.raise_for_status()
+                            print(f"Score verzonden: {name_input_text}, {total_strokes} strokes, {int(total_elapsed_time)} seconden")
+                            name_submitted = True
+                            game_state = LEVEL_COMPLETE
+                        except requests.RequestException as e:
+                            error_message = f"Fout bij verzenden score: {str(e)}"
+                            print(error_message)
+                    elif event.key == K_BACKSPACE:
+                        name_input_text = name_input_text[:-1]
+                    else:
+                        name_input_text += event.unicode
+                if submit_button.handle_event(event) == "submit" and name_input_text.strip():
+                    total_strokes = sum(l.strokes for l in levels)
+                    try:
+                        response = requests.post(
+                            f"{API_URL}/scores/add/",
+                            json={
+                                "username": name_input_text.strip(),
+                                "score": total_strokes,
+                                "time_seconds": int(total_elapsed_time)
+                            },
+                            timeout=5
+                        )
+                        response.raise_for_status()
+                        print(f"Score verzonden: {name_input_text}, {total_strokes} strokes, {int(total_elapsed_time)} seconden")
+                        name_submitted = True
+                        game_state = LEVEL_COMPLETE
+                    except requests.RequestException as e:
+                        error_message = f"Fout bij verzenden score: {str(e)}"
+                        print(error_message)
+
+
+            elif game_state == LEVEL_COMPLETE:
+                action = None
+                if current_level < len(levels) - 1:
+                    action = next_button.handle_event(event) or menu_button.handle_event(event)
+                else:
+                    action = menu_button.handle_event(event)
+                if action == "next":
+                    game_state = PLAYING
+                    load_level(current_level + 1)
+                    timer_active = True
+                    level_start_time = time.time()
+                elif action == "menu":
+                    timer_active = False
+                    return
+                
         if game_state == PLAYING:
             for moving_obstacle in levels[current_level].moving_obstacles:
                 moving_obstacle.update()
-
             ball_pos[0] += ball_speed[0]
             ball_pos[1] += ball_speed[1]
-
             if ball_pos[0] - ball_radius < 0:
                 ball_pos[0] = ball_radius
                 ball_speed[0] = -ball_speed[0] * 0.8
@@ -948,12 +987,20 @@ def game_screen(level_num):
 
             if distance(ball_pos, levels[current_level].hole_pos) < hole_radius - ball_radius:
                 total_strokes += levels[current_level].strokes
-                game_state = LEVEL_COMPLETE
+                # Ontgrendel het volgende level direct
+                if current_level + 1 < len(unlocked_levels):
+                    unlocked_levels[current_level + 1] = True
+                    level_buttons[current_level + 1].locked = False
+                    level_buttons[current_level + 1].color = GREEN
+                    level_buttons[current_level + 1].hover_color = HOVER_COLOR
+                game_state = LEVEL_COMPLETE if current_level < len(levels) - 1 else NAME_INPUT
 
         if game_state == PLAYING:
             draw_game()
         elif game_state == LEVEL_COMPLETE:
             draw_level_complete()
+        elif game_state == NAME_INPUT:
+            draw_name_input()
 
         pygame.display.flip()
         clock.tick(60)

@@ -1,1 +1,2 @@
 INSERT_SCORE = "INSERT INTO brainputt.scores (username, score, time_seconds) VALUES (%s, %s, %s) RETURNING id;"
+GET_SCORES = "SELECT username, score, time_seconds FROM scores ORDER BY score ASC, time_seconds ASC LIMIT 5;"

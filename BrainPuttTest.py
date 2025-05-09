@@ -942,7 +942,7 @@ def game_screen(level_num):
                 elif action == "menu":
                     timer_active = False
                     return
-                
+
         if game_state == PLAYING:
             for moving_obstacle in levels[current_level].moving_obstacles:
                 moving_obstacle.update()

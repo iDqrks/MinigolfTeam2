@@ -39,6 +39,10 @@ BUTTON_HOVER_COLOR = (120, 170, 220)
 LOCKED_COLOR = (100, 100, 100)
 ARROW_COLOR = (0, 0, 0)
 
+# Standaard waarde bal en vlag
+selected_ball_color = WHITE
+selected_flag_color = RED
+
 # Fonts
 title_font = pygame.font.Font(None, 120)
 button_font = pygame.font.Font(None, 60)
@@ -104,10 +108,9 @@ class HomeButton:
 # Homescreen knoppen
 start_button = HomeButton("Start Spel", (SCREEN_WIDTH - 250) // 2, 350, 250, 120, button_font)
 levels_button = HomeButton("Levels", 50, 650, 200, 60, small_font)
-achievements_button = HomeButton("Prestaties", 700, 650, 250, 60, small_font)
 customize_button = HomeButton("Personaliseer", (SCREEN_WIDTH - 250) // 2, 500, 250, 75, small_font)
 score_button = HomeButton("Scorebord", (SCREEN_WIDTH - 250) // 2, 600, 250, 75, button_font)
-buttons = [start_button, levels_button, achievements_button, customize_button, score_button]
+buttons = [start_button, levels_button, customize_button, score_button]
 
 # Level knoppen (3x3 raster) met lock-status
 unlocked_levels = [True] + [False] * 8  # Alleen Level 1 is unlocked bij start
@@ -139,11 +142,6 @@ class SkinOption:
         if self.type == "bal":
             pygame.draw.circle(screen, self.color, (center_x, center_y), 40)
             pygame.draw.circle(screen, BLACK, (center_x, center_y), 40, 2)
-        elif self.type == "club":
-            pygame.draw.rect(screen, self.color, (center_x - 5, center_y - 40, 10, 60))
-            pygame.draw.rect(screen, self.color, (center_x - 20, center_y + 20, 40, 10))
-            pygame.draw.rect(screen, BLACK, (center_x - 5, center_y - 40, 10, 60), 2)
-            pygame.draw.rect(screen, BLACK, (center_x - 20, center_y + 20, 40, 10), 2)
         elif self.type == "vlag":
             pygame.draw.rect(screen, GRAY, (center_x - 5, center_y - 40, 10, 80))
             pygame.draw.polygon(screen, self.color, [(center_x, center_y - 40),
@@ -164,10 +162,9 @@ class SkinOption:
 
 # Customize scherm knoppen
 customize_options = [
-    HomeButton("Bal Skins", (SCREEN_WIDTH - 250) // 2, 250, 250, 75, button_font),
-    HomeButton("Club Skins", (SCREEN_WIDTH - 250) // 2, 350, 250, 75, button_font),
-    HomeButton("Vlag Skins", (SCREEN_WIDTH - 250) // 2, 450, 250, 75, button_font),
-    HomeButton("Terug", (SCREEN_WIDTH - 250) // 2, 550, 250, 75, button_font)
+    HomeButton("Bal Skins", (SCREEN_WIDTH - 250) // 2, 300, 250, 75, button_font),
+    HomeButton("Vlag Skins", (SCREEN_WIDTH - 250) // 2, 400, 250, 75, button_font),
+    HomeButton("Terug", (SCREEN_WIDTH - 250) // 2, 500, 250, 75, button_font)
 ]
 
 # Voorbeeld skins
@@ -175,11 +172,6 @@ ball_skins = [
     SkinOption(300, 250, WHITE, "bal"),
     SkinOption(450, 250, RED, "bal"),
     SkinOption(600, 250, YELLOW, "bal")
-]
-club_skins = [
-    SkinOption(300, 250, GRAY, "club"),
-    SkinOption(450, 250, GREEN, "club"),
-    SkinOption(600, 250, BLUE, "club")
 ]
 flag_skins = [
     SkinOption(300, 250, RED, "vlag"),
@@ -270,14 +262,14 @@ levels = [
           par=4,
           start_pos=(50, 50)),
     Level(hole_pos=[750, 550],
-          obstacles=[pygame.Rect(0, 300, 300, 25), pygame.Rect(400, 300, 350, 25)],
+          obstacles=[pygame.Rect(0, 300, 300, 25), pygame.Rect(400, 300, 450, 25)],
           moving_obstacles=[MovingBarrier(start_pos=[350, 350], end_pos=[350, 450], speed=3, vertical=True)],
           par=4,
           start_pos=(50, 50)),
     Level(hole_pos=[650, 450],
-          obstacles=[pygame.Rect(0, 200, 350, 25), pygame.Rect(450, 200, 350, 25), pygame.Rect(350, 200, 25, 200)],
+          obstacles=[pygame.Rect(0, 200, 350, 25), pygame.Rect(450, 200, 400, 25), pygame.Rect(350, 200, 25, 200)],
           moving_obstacles=[MovingBarrier(start_pos=[400, 250], end_pos=[400, 300], speed=2, vertical=True),
-                           MovingBarrier(start_pos=[500, 350], end_pos=[500, 400], speed=2, vertical=True)],
+                            MovingBarrier(start_pos=[500, 350], end_pos=[500, 400], speed=2, vertical=True)],
           par=5,
           start_pos=(50, 50)),
     Level(hole_pos=[700, 600],
@@ -336,8 +328,6 @@ def homescreen():
                         game_screen(0)
                     elif button.text == "Levels":
                         level_screen()
-                    elif button.text == "Prestaties":
-                        print("Toon prestaties...")
                     elif button.text == "Personaliseer":
                         customize_screen()
                     elif button.text == "Scorebord":
@@ -387,17 +377,20 @@ def customize_screen():
                         return
                     elif button.text == "Bal Skins":
                         skin_selection_screen(ball_skins, "Bal Skins")
-                    elif button.text == "Club Skins":
-                        skin_selection_screen(club_skins, "Club Skins")
                     elif button.text == "Vlag Skins":
                         skin_selection_screen(flag_skins, "Vlag Skins")
 
         screen.fill(BLUE)
         pygame.draw.rect(screen, GREEN, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
 
+        # Titel
         customize_title = title_font.render("Personaliseer", True, WHITE)
         title_rect = customize_title.get_rect(center=(SCREEN_WIDTH // 2, 150))
         screen.blit(customize_title, title_rect)
+
+        # Achtergrond voor knoppen
+        pygame.draw.rect(screen, LIGHT_GREEN, (SCREEN_WIDTH // 2 - 150, 250, 300, 300), border_radius=20)
+        pygame.draw.rect(screen, DARK_GREEN, (SCREEN_WIDTH // 2 - 150, 250, 300, 300), 5, border_radius=20)
 
         for button in customize_options:
             button.draw(screen)
@@ -425,6 +418,11 @@ def skin_selection_screen(skins, skin_type):
                     skin.selected = True
                     selected_skin = skin
                     print(f"Geselecteerd {skin_type} met kleur {skin.color}")
+                    global selected_ball_color, selected_flag_color
+                    if skin.type == "bal":
+                        selected_ball_color = skin.color
+                    elif skin.type == "vlag":
+                        selected_flag_color = skin.color
 
         screen.fill(BLUE)
         pygame.draw.rect(screen, GREEN, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
@@ -562,7 +560,7 @@ def scoreboard_screen():
 
 # Game scherm
 def game_screen(level_num):
-    global unlocked_levels, total_elapsed_time, level_start_time, timer_active
+    global unlocked_levels, total_elapsed_time, level_start_time, timer_active, selected_ball_color, selected_flag_color
     clock = pygame.time.Clock()
     running = True
     back_button = GameButton(875, 680, 100, 50, "Terug", "back")
@@ -582,6 +580,7 @@ def game_screen(level_num):
     ball_pos = list(levels[current_level].start_pos)
     total_strokes = 0
     game_state = PLAYING
+    END_SCREEN = 4  # Nieuwe staat voor eindscherm
 
     # Breedere zijbalk instellingen
     sidebar_width = 150
@@ -608,7 +607,8 @@ def game_screen(level_num):
 
     next_button = GameButton(SCREEN_WIDTH // 2 - 100, 470, 200, 60, "Volgend Level", "next")
     menu_button = GameButton(SCREEN_WIDTH // 2 - 100, 550, 200, 60, "Hoofdmenu", "menu")
-    submit_button = GameButton(SCREEN_WIDTH // 2 - 100, 520, 200, 60, "Submit", "submit")
+    submit_button = GameButton(SCREEN_WIDTH // 2 - 100, 500, 200, 60, "Indienen", "submit")
+    end_menu_button = HomeButton("Hoofdmenu", (SCREEN_WIDTH - 250) // 2, 600, 250, 75, button_font)
 
     # Variabelen voor naam invoer na game voltooiing
     name_input_active = False
@@ -616,6 +616,10 @@ def game_screen(level_num):
     name_input_box = pygame.Rect(SCREEN_WIDTH // 2 - 150, 350, 300, 50)
     name_submitted = False
     error_message = ""
+
+    # Variabelen voor eindscherm
+    golfball_pos = [100, 100]
+    ball_angle = 0
 
     def distance(p1, p2):
         return math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
@@ -691,8 +695,30 @@ def game_screen(level_num):
             moving_obstacle.update()
             moving_obstacle.draw(screen)
 
+        # Teken de hole
         pygame.draw.circle(screen, BLACK, levels[current_level].hole_pos, hole_radius)
         pygame.draw.circle(screen, (50, 50, 50), levels[current_level].hole_pos, hole_radius - 5)
+
+        # Teken de vlag bovenop de hole
+        hole_center_x, hole_center_y = levels[current_level].hole_pos
+        flagpole_height = 80
+        flag_width = 40
+        flag_height = 20
+        # Vlaggenstok
+        pygame.draw.rect(screen, GRAY, (hole_center_x - 5, hole_center_y - flagpole_height, 10, flagpole_height))
+        # Vlag
+        pygame.draw.polygon(screen, selected_flag_color, [
+            (hole_center_x, hole_center_y - flagpole_height),
+            (hole_center_x + flag_width, hole_center_y - flagpole_height + flag_height // 2),
+            (hole_center_x, hole_center_y - flagpole_height + flag_height)
+        ])
+        # Randen
+        pygame.draw.rect(screen, BLACK, (hole_center_x - 5, hole_center_y - flagpole_height, 10, flagpole_height), 2)
+        pygame.draw.polygon(screen, BLACK, [
+            (hole_center_x, hole_center_y - flagpole_height),
+            (hole_center_x + flag_width, hole_center_y - flagpole_height + flag_height // 2),
+            (hole_center_x, hole_center_y - flagpole_height + flag_height)
+        ], 2)
 
         if force > 0 and input_text:
             try:
@@ -740,8 +766,13 @@ def game_screen(level_num):
             except (ValueError, IndexError):
                 pass
 
-        pygame.draw.circle(screen, RED, (int(ball_pos[0]), int(ball_pos[1])), ball_radius)
-        pygame.draw.circle(screen, (255, 100, 100), (int(ball_pos[0] - ball_radius / 3), int(ball_pos[1] - ball_radius / 3)), ball_radius / 3)
+        # Teken de bal met de geselecteerde kleur
+        pygame.draw.circle(screen, selected_ball_color, (int(ball_pos[0]), int(ball_pos[1])), ball_radius)
+        # Teken het rode puntje alleen als de bal niet wit of geel is
+        if selected_ball_color not in [WHITE, YELLOW]:
+            pygame.draw.circle(screen, (255, 100, 100),
+                               (int(ball_pos[0] - ball_radius / 3), int(ball_pos[1] - ball_radius / 3)),
+                               ball_radius / 3)
 
         coord_text = font_input.render("Doel (x,y):", True, BLACK)
         screen.blit(coord_text, (SCREEN_WIDTH - sidebar_width + 10, 100))
@@ -754,53 +785,118 @@ def game_screen(level_num):
             cursor_y = input_box.y + 7
             cursor_height = font_input.get_height() + 5
             pygame.draw.line(screen, TEXT_COLOR,
-                            (cursor_x, cursor_y), (cursor_x, cursor_y + cursor_height), 2)
+                             (cursor_x, cursor_y), (cursor_x, cursor_y + cursor_height), 2)
 
         force_text = font_input.render(f"Kracht: {force:.1f}", True, TEXT_COLOR)
         screen.blit(force_text, (SCREEN_WIDTH - sidebar_width + 10, 205))
         pygame.draw.rect(screen, SLIDER_BG_COLOR, slider_rect)
         pygame.draw.circle(screen, SLIDER_KNOB_COLOR, (slider_x + slider_width // 2, slider_knob_y), slider_knob_radius)
 
-        strokes_text = font_input.render(f"Strokes: {levels[current_level].strokes}", True, BLACK)
+        strokes_text = font_input.render(f"Slagen: {levels[current_level].strokes}", True, BLACK)
         screen.blit(strokes_text, (SCREEN_WIDTH - sidebar_width + 10, 10))
         level_text = font_input.render(f"Level: {current_level + 1}/{len(levels)}", True, BLACK)
         screen.blit(level_text, (SCREEN_WIDTH - sidebar_width + 10, 30))
         par_text = font_input.render(f"Par: {levels[current_level].par}", True, BLACK)
         screen.blit(par_text, (SCREEN_WIDTH - sidebar_width + 10, 50))
-        time_text = font_input.render(f"Time: {current_time}s", True, BLACK)
+        time_text = font_input.render(f"Tijd: {current_time}s", True, BLACK)
         screen.blit(time_text, (SCREEN_WIDTH - sidebar_width + 10, 70))
 
         hit_button.draw(screen)
         back_button.draw(screen)
 
+    def draw_end_screen():
+        nonlocal ball_angle
+        # Statistieken berekenen
+        total_strokes = sum(l.strokes for l in levels)
+        hole_in_ones = sum(1 for l in levels if l.strokes == 1)
+        total_time_min = int(total_elapsed_time // 60)
+        avg_strokes = total_strokes / len(levels) if levels else 0
+        stats = {
+            "Totale Slagen": total_strokes,
+            "Hole-in-Ones": hole_in_ones,
+            "Totale Tijd (min)": total_time_min,
+            "Gemiddelde Slagen per Hole": round(avg_strokes, 1)
+        }
+
+        # Achtergrond
+        screen.fill(BLUE)
+        pygame.draw.rect(screen, GREEN, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
+        pygame.draw.rect(screen, LIGHT_GREEN, (0, SCREEN_HEIGHT // 2 + 50, SCREEN_WIDTH, 150))
+        pygame.draw.ellipse(screen, DARK_GREEN, (SCREEN_WIDTH - 250, SCREEN_HEIGHT - 200, 200, 70))
+
+        # Titel
+        title_shadow = title_font.render("Spel Voltooid!", True, SHADOW_COLOR)
+        title = title_font.render("Spel Voltooid!", True, WHITE)
+        title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))
+        screen.blit(title_shadow, title_rect.move(5, 5))
+        pygame.draw.rect(screen, DARK_GREEN, (title_rect.x - 40, title_rect.y - 25,
+                                              title_rect.width + 80, title_rect.height + 50), border_radius=20)
+        screen.blit(title, title_rect)
+
+        # Gefeliciteerd
+        congrats = button_font.render("Gefeliciteerd!", True, WHITE)
+        congrats_rect = congrats.get_rect(center=(SCREEN_WIDTH // 2, 250))
+        screen.blit(congrats, congrats_rect)
+
+        # Statistieken
+        y_pos = 320
+        for stat, value in stats.items():
+            stat_text = small_font.render(f"{stat}: {value}", True, WHITE)
+            stat_rect = stat_text.get_rect(center=(SCREEN_WIDTH // 2, y_pos))
+            screen.blit(stat_text, stat_rect)
+            y_pos += 50
+
+        # Geanimeerde golfbal
+        ball_surface = pygame.Surface((50, 50), pygame.SRCALPHA)
+        pygame.draw.circle(ball_surface, selected_ball_color, (25, 25), 25)
+        if selected_ball_color not in [WHITE, YELLOW]:
+            pygame.draw.circle(ball_surface, (255, 100, 100), (25 - 25 / 3, 25 - 25 / 3), 25 / 3)
+        pygame.draw.circle(ball_surface, GRAY, (25, 25), 25, 2)
+        rotated_ball = pygame.transform.rotate(ball_surface, ball_angle)
+        ball_rect = rotated_ball.get_rect(center=golfball_pos)
+        screen.blit(rotated_ball, ball_rect)
+        ball_angle += 1
+
+        # Knop
+        end_menu_button.draw(screen)
+
     def draw_name_input():
         nonlocal error_message
         screen.fill(GREEN)
+        # Achtergrondkader
         pygame.draw.rect(screen, LIGHT_GREEN, (100, 100, SCREEN_WIDTH - 200, SCREEN_HEIGHT - 200), border_radius=20)
+        pygame.draw.rect(screen, BLACK, (100, 100, SCREEN_WIDTH - 200, SCREEN_HEIGHT - 200), 2, border_radius=20)
 
+        # Titel
         title = title_font.render("Spel Voltooid!", True, WHITE)
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 200))
         pygame.draw.rect(screen, GRID_COLOR, title_rect.inflate(60, 30), border_radius=10)
         screen.blit(title, title_rect)
 
+        # Instructietekst
         prompt = font_medium.render("Voer je naam in:", True, BLACK)
-        screen.blit(prompt, (SCREEN_WIDTH // 2 - prompt.get_width() // 2, 300))
+        prompt_rect = prompt.get_rect(center=(SCREEN_WIDTH // 2, 300))
+        screen.blit(prompt, prompt_rect)
 
+        # Invoerveld
         pygame.draw.rect(screen, WHITE, name_input_box, border_radius=5)
         pygame.draw.rect(screen, BLACK, name_input_box, 2, border_radius=5)
         name_surface = font_input.render(name_input_text, True, TEXT_COLOR)
-        screen.blit(name_surface, (name_input_box.x + 5, name_input_box.y + 5))
+        screen.blit(name_surface, (name_input_box.x + 10, name_input_box.y + 10))
         if name_input_active and cursor_visible:
-            cursor_x = name_input_box.x + 5 + name_surface.get_width()
-            cursor_y = name_input_box.y + 5
+            cursor_x = name_input_box.x + 10 + name_surface.get_width()
+            cursor_y = name_input_box.y + 7
             cursor_height = font_input.get_height() + 5
             pygame.draw.line(screen, TEXT_COLOR,
-                            (cursor_x, cursor_y), (cursor_x, cursor_y + cursor_height), 2)
+                             (cursor_x, cursor_y), (cursor_x, cursor_y + cursor_height), 2)
 
+        # Foutmelding
         if error_message:
             error_text = font_small.render(error_message, True, RED)
-            screen.blit(error_text, (SCREEN_WIDTH // 2 - error_text.get_width() // 2, 410))
+            error_rect = error_text.get_rect(center=(SCREEN_WIDTH // 2, 420))
+            screen.blit(error_text, error_rect)
 
+        # Knoppen
         submit_button.draw(screen)
         back_button.draw(screen)
 
@@ -815,21 +911,19 @@ def game_screen(level_num):
         pygame.draw.rect(screen, LIGHT_GREEN, (100, 100, SCREEN_WIDTH - 200, SCREEN_HEIGHT - 200), border_radius=20)
 
         level = levels[current_level]
-        level_time = int(level.elapsed_time)
-        total_time = int(total_elapsed_time)
         title = title_font.render(f"Level {current_level + 1} compleet!", True, WHITE)
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 200))
         pygame.draw.rect(screen, GRID_COLOR, title_rect.inflate(60, 30), border_radius=10)
         screen.blit(title, title_rect)
 
-        strokes_text = font_medium.render(f"Jouw strokes: {level.strokes}", True, WHITE)
+        strokes_text = font_medium.render(f"Jouw slagen: {level.strokes}", True, WHITE)
         strokes_rect = strokes_text.get_rect(center=(SCREEN_WIDTH // 2, 300))
         par_text = font_medium.render(f"Par: {level.par}", True, WHITE)
         par_rect = par_text.get_rect(center=(SCREEN_WIDTH // 2, 350))
         if level.strokes < level.par:
             result_text = font_medium.render(f"{level.par - level.strokes} onder par!", True, BLUE)
         elif level.strokes > level.par:
-            result_text = font_medium.render(f"{level.strokes - level.par} over par", True, RED)
+            result_text = font_medium.render(f"{level.strokes - level.par} boven par", True, RED)
         else:
             result_text = font_medium.render("Par!", True, GREEN)
         result_rect = result_text.get_rect(center=(SCREEN_WIDTH // 2, 400))
@@ -839,17 +933,12 @@ def game_screen(level_num):
         screen.blit(par_text, par_rect)
         screen.blit(result_text, result_rect)
 
-        time_text = font_medium.render(f"Level Time: {level_time}s", True, BLACK)
-        screen.blit(time_text, (SCREEN_WIDTH // 2 - time_text.get_width() // 2, 450))
-        total_time_text = font_medium.render(f"Total Time: {total_time}s", True, BLACK)
-        screen.blit(total_time_text, (SCREEN_WIDTH // 2 - total_time_text.get_width() // 2, 500))
-
         if current_level < len(levels) - 1:
             next_button.draw(screen)
         else:
             complete_text = font_large.render("Spel Voltooid!", True, BLACK)
             screen.blit(complete_text, (SCREEN_WIDTH // 2 - complete_text.get_width() // 2, 550))
-            total_text = font_medium.render(f"Totaal strokes: {sum(l.strokes for l in levels)}", True, BLACK)
+            total_text = font_medium.render(f"Totale slagen: {sum(l.strokes for l in levels)}", True, BLACK)
             screen.blit(total_text, (SCREEN_WIDTH // 2 - total_text.get_width() // 2, 600))
 
         menu_button.draw(screen)
@@ -874,6 +963,8 @@ def game_screen(level_num):
         elif game_state == NAME_INPUT:
             submit_button.check_hover(mouse_pos)
             back_button.check_hover(mouse_pos)
+        elif game_state == END_SCREEN:
+            end_menu_button.draw(screen)  # HomeButton handelt hover zelf
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -934,9 +1025,9 @@ def game_screen(level_num):
                                 timeout=5
                             )
                             response.raise_for_status()
-                            print(f"Score verzonden: {name_input_text}, {total_strokes} strokes, {int(total_elapsed_time)} seconden")
+                            print(f"Score verzonden: {name_input_text}, {total_strokes} slagen, {int(total_elapsed_time)} seconden")
                             name_submitted = True
-                            game_state = LEVEL_COMPLETE
+                            game_state = END_SCREEN
                         except requests.RequestException as e:
                             error_message = f"Fout bij verzenden score: {str(e)}"
                             print(error_message)
@@ -957,13 +1048,12 @@ def game_screen(level_num):
                             timeout=5
                         )
                         response.raise_for_status()
-                        print(f"Score verzonden: {name_input_text}, {total_strokes} strokes, {int(total_elapsed_time)} seconden")
+                        print(f"Score verzonden: {name_input_text}, {total_strokes} slagen, {int(total_elapsed_time)} seconden")
                         name_submitted = True
-                        game_state = LEVEL_COMPLETE
+                        game_state = END_SCREEN
                     except requests.RequestException as e:
                         error_message = f"Fout bij verzenden score: {str(e)}"
                         print(error_message)
-
 
             elif game_state == LEVEL_COMPLETE:
                 action = None
@@ -977,6 +1067,11 @@ def game_screen(level_num):
                     timer_active = True
                     level_start_time = time.time()
                 elif action == "menu":
+                    timer_active = False
+                    return
+
+            elif game_state == END_SCREEN:
+                if end_menu_button.is_clicked(event):
                     timer_active = False
                     return
 
@@ -1038,6 +1133,8 @@ def game_screen(level_num):
             draw_level_complete()
         elif game_state == NAME_INPUT:
             draw_name_input()
+        elif game_state == END_SCREEN:
+            draw_end_screen()
 
         pygame.display.flip()
         clock.tick(60)

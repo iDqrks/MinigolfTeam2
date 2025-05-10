@@ -490,6 +490,16 @@ def scoreboard_screen():
         print(f"Fout bij ophalen scores: {e}")
         scores = []
 
+    # Tabelinstellingen
+    table_x = 200
+    table_y = 150
+    table_width = 600
+    table_height = 400
+    row_height = 50
+    col_widths = [80, 250, 120, 150]  # Breedtes voor Rank, Naam, Strokes, Tijd
+    header_color = (50, 100, 50)  # Donkergroen voor header
+    row_colors = [(255, 255, 255), (240, 240, 240)]  # Afwisselend wit en lichtgrijs
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -500,24 +510,51 @@ def scoreboard_screen():
         screen.fill(BLUE)
         pygame.draw.rect(screen, GREEN, (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2))
 
+        # Titel
         title = title_font.render("Scoreboard", True, WHITE)
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 100))
+        pygame.draw.rect(screen, DARK_GREEN, title_rect.inflate(60, 30), border_radius=10)
         screen.blit(title, title_rect)
 
-        # Toon scores
-        y_offset = 200
-        headers = font_medium.render("Rank  Name            Strokes  Time", True, BLACK)
-        screen.blit(headers, (SCREEN_WIDTH // 2 - headers.get_width() // 2, y_offset))
-        y_offset += 50
+        # Tabelachtergrond
+        pygame.draw.rect(screen, WHITE, (table_x, table_y, table_width, table_height), border_radius=10)
+        pygame.draw.rect(screen, BLACK, (table_x, table_y, table_width, table_height), 2, border_radius=10)
 
-        for i, score in enumerate(scores[:5], 1):  # Beperk tot top 5
-            score_text = font_medium.render(
-                f"{i:<5} {score['username']:<15} {score['score']:<8} {score['time_seconds']}s",
-                True,
-                BLACK
-            )
-            screen.blit(score_text, (SCREEN_WIDTH // 2 - score_text.get_width() // 2, y_offset))
-            y_offset += 40
+        # Header
+        headers = ["Rank", "Naam", "Strokes", "Tijd"]
+        for i, header in enumerate(headers):
+            pygame.draw.rect(screen, header_color, (table_x + sum(col_widths[:i]), table_y, col_widths[i], row_height))
+            pygame.draw.rect(screen, BLACK, (table_x + sum(col_widths[:i]), table_y, col_widths[i], row_height), 1)
+            text = font_medium.render(header, True, WHITE)
+            text_rect = text.get_rect(left=table_x + sum(col_widths[:i]) + 10, centery=table_y + row_height // 2)
+            screen.blit(text, text_rect)
+
+        # Scores
+        if not scores:
+            no_scores_text = font_medium.render("Nog geen scores beschikbaar", True, BLACK)
+            screen.blit(no_scores_text, (SCREEN_WIDTH // 2 - no_scores_text.get_width() // 2, table_y + row_height * 2))
+        else:
+            for i, score in enumerate(scores[:5], 1):  # Beperk tot top 5
+                row_y = table_y + row_height * (i)
+                row_color = row_colors[i % 2]
+                pygame.draw.rect(screen, row_color, (table_x, row_y, table_width, row_height))
+                pygame.draw.rect(screen, BLACK, (table_x, row_y, table_width, row_height), 1)
+
+                # Rank
+                rank_text = font_small.render(str(i), True, BLACK)
+                screen.blit(rank_text, (table_x + 10, row_y + row_height // 2 - rank_text.get_height() // 2))
+
+                # Naam
+                name_text = font_small.render(score['username'][:20], True, BLACK)  # Beperk lengte
+                screen.blit(name_text, (table_x + col_widths[0] + 10, row_y + row_height // 2 - name_text.get_height() // 2))
+
+                # Strokes
+                strokes_text = font_small.render(str(score['score']), True, BLACK)
+                screen.blit(strokes_text, (table_x + sum(col_widths[:2]) + 10, row_y + row_height // 2 - strokes_text.get_height() // 2))
+
+                # Tijd
+                time_text = font_small.render(f"{score['time_seconds']}s", True, BLACK)
+                screen.blit(time_text, (table_x + sum(col_widths[:3]) + 10, row_y + row_height // 2 - time_text.get_height() // 2))
 
         back_button.draw(screen)
         pygame.display.flip()

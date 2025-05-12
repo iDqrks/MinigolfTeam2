@@ -722,20 +722,34 @@ def game_screen(level_num):
 
         if force > 0 and input_text:
             try:
-                coords = input_text.replace("(", "").replace(")", "").split(",")
+                # conversion input to coords list
+                coords = input_text.replace("(", "").replace(")", "").split(",") #Replacing input "()" by empty space so they don't get added to the list
+
                 input_x = int(coords[0])
                 input_y = int(coords[1])
+
                 max_screen_width = SCREEN_WIDTH - sidebar_width
+
+                # check if input coordinates are inside playing field
                 if 0 <= input_x <= max_screen_width and 0 <= input_y <= SCREEN_HEIGHT:
+
+                    # distance from ball to target
                     horizontal_distance = input_x - ball_pos[0]
                     vertical_distance = input_y - ball_pos[1]
                     distance_ball_to_target = math.hypot(horizontal_distance, vertical_distance)
+
                     if distance_ball_to_target > 0:
+
+                        # arrow direction toward target
                         direction_x = horizontal_distance / distance_ball_to_target
                         direction_y = vertical_distance / distance_ball_to_target
+
+                        # where arrow tip ends
                         arrow_length = force * ARROW_SCALE
                         arrow_tip_x = ball_pos[0] + direction_x * arrow_length
                         arrow_tip_y = ball_pos[1] + direction_y * arrow_length
+
+                        # drawing arrow shaft
                         pygame.draw.line(
                             screen,
                             ARROW_COLOR,
@@ -743,17 +757,22 @@ def game_screen(level_num):
                             (int(arrow_tip_x), int(arrow_tip_y)),
                             ARROW_WIDTH
                         )
+
+                        # drawing arrow head
                         arrow_angle = math.atan2(direction_y, direction_x)
                         arrow_angle_left = arrow_angle + math.radians(150)
                         arrow_angle_right = arrow_angle - math.radians(150)
+
                         arrow_head_point1 = (
                             arrow_tip_x + math.cos(arrow_angle_left) * ARROW_HEAD_LEN,
                             arrow_tip_y + math.sin(arrow_angle_left) * ARROW_HEAD_LEN
                         )
+
                         arrow_head_point2 = (
                             arrow_tip_x + math.cos(arrow_angle_right) * ARROW_HEAD_LEN,
                             arrow_tip_y + math.sin(arrow_angle_right) * ARROW_HEAD_LEN
                         )
+
                         pygame.draw.polygon(
                             screen,
                             ARROW_COLOR,
@@ -780,6 +799,8 @@ def game_screen(level_num):
         pygame.draw.rect(screen, BLACK, input_box, 2, border_radius=5)
         text_surface = font_input.render(input_text, True, TEXT_COLOR)
         screen.blit(text_surface, (input_box.x + 10, input_box.y + 10))
+
+        #Cursor
         if active and cursor_visible:
             cursor_x = input_box.x + 10 + text_surface.get_width()
             cursor_y = input_box.y + 7
@@ -945,6 +966,7 @@ def game_screen(level_num):
         back_button.draw(screen)
 
     while running:
+        # Cursor in invoerveld
         now = pygame.time.get_ticks()
         if (active or name_input_active) and now - last_cursor_switch >= BLINK_INTERVAL:
             cursor_visible = not cursor_visible
